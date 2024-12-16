@@ -63,7 +63,7 @@ function Popup() {
         initForm();
         initLoading();
         chrome.runtime.onMessage.addListener(
-            (message, sender, sendResponse) => {
+            (message, _, sendResponse) => {
                 console.log("Message received in background script:", message);
                 const item = JSON.parse(message);
                 const { action, data } = item;

@@ -98,6 +98,7 @@ const modalSubmit = (callback?: () => void) => {
         if (modalDom) {
             clearInterval(timer)
             modalDom.click()
+            callback?.()
         }
     })
     return timer
