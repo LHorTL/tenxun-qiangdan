@@ -2,10 +2,14 @@ import "./App.css";
 import { Button, ConfigProvider, Form, Radio, TimePicker } from "antd";
 import zh_CN from "antd/locale/zh_CN";
 import Item from "./item";
+import { useEffect, useState } from "react";
+import { getLocal, setLocal } from "./chrome-util";
 
 function Popup() {
     const [form] = Form.useForm();
     const type = Form.useWatch("type", form);
+    const [loading, setLoading] = useState(false);
+
     const submit = () => {
         const values = form.getFieldsValue();
         console.log(values);
@@ -23,13 +27,62 @@ function Popup() {
                 });
             }
         });
+
+        setLoading(true);
+        setLocal("loading", JSON.stringify(true));
     };
-    console.log("启动了");
+
+    const initForm = async () => {
+        const data = await getLocal("form");
+        if (data) {
+            form.setFieldsValue(data);
+        }
+    };
+    const initLoading = async () => {
+        const data = await getLocal("timer");
+        if (data) {
+            setLoading(true);
+        }
+    };
+    const handleValueChange = (_: any, values: any) => {
+        setLocal("form", JSON.stringify(values));
+    };
+
+    const stop = () => {
+        setLoading(false);
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]?.id) {
+                chrome.tabs.sendMessage(tabs[0].id, {
+                    action: "stop",
+                });
+            }
+        });
+    };
+
+    useEffect(() => {
+        initForm();
+        initLoading();
+        chrome.runtime.onMessage.addListener(
+            (message, sender, sendResponse) => {
+                console.log("Message received in background script:", message);
+                const item = JSON.parse(message);
+                const { action, data } = item;
+                if (action === "loading") {
+                    setLoading(data);
+                }
+                // 发送响应消息给内容脚本
+                sendResponse({
+                    response: "Message received in background script!",
+                });
+            }
+        );
+    }, []);
 
     return (
         <ConfigProvider locale={zh_CN}>
             <Form
                 onFinish={submit}
+                onValuesChange={handleValueChange}
                 form={form}
                 initialValues={{
                     type: 2,
@@ -74,9 +127,13 @@ function Popup() {
                     </>
                 )}
             </Form>
-            <Button style={{ marginTop: 24 }} onClick={() => form.submit()}>
-                启动
-            </Button>
+            {loading ? (
+                <Button onClick={stop}>运行中</Button>
+            ) : (
+                <Button style={{ marginTop: 24 }} onClick={() => form.submit()}>
+                    启动
+                </Button>
+            )}
         </ConfigProvider>
     );
 }

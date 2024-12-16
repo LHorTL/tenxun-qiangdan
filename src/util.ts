@@ -78,12 +78,12 @@ const submit = () => {
     }
 }
 
-const awaitSubmit = (fn: () => void) => {
+const awaitSubmit = (fn: (callback?: () => void) => void, callback?: () => void) => {
     const timer = setInterval(() => {
         const dom = getDom('.question-commit button') as any
         if (dom && dom.innerHTML === '收集暂未开始') {
         } else {
-            fn?.()
+            fn?.(callback)
             dom.click()
             modalSubmit();
             clearInterval(timer)
@@ -92,7 +92,7 @@ const awaitSubmit = (fn: () => void) => {
     return timer
 }
 
-const modalSubmit = () => {
+const modalSubmit = (callback?: () => void) => {
     const timer = setInterval(() => {
         const modalDom = getDom('.dui-dragger .dui-button-type-primary') as any
         if (modalDom) {
@@ -103,11 +103,11 @@ const modalSubmit = () => {
     return timer
 }
 
-const watchDateFn = (time: string, fn: () => void) => {
+const watchDateFn = (time: string, fn: (callback?: () => void) => void, callback?: () => void) => {
     let timer = setInterval(() => {
         const currentTime = getDate(3) || ''
         if (currentTime === time) {
-            fn()
+            fn(callback)
             console.dir(Date.now());
             clearInterval(timer)
         }
@@ -116,16 +116,16 @@ const watchDateFn = (time: string, fn: () => void) => {
 }
 
 
-const start = () => {
-    return modalSubmit()
+const start = (callback?: () => void) => {
+    return modalSubmit(callback)
 }
 
-const noAwaitStart = (time: string) => {
+const noAwaitStart = (time: string, callback?: () => void) => {
     submit()
-    return watchDateFn(time, start)
+    return watchDateFn(time, start, callback)
 }
-const awaitStart = (fn: () => void) => {
-    return awaitSubmit(fn);
+const awaitStart = (fn: () => void, callback?: () => void) => {
+    return awaitSubmit(fn, callback);
 }
 
 

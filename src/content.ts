@@ -5,7 +5,16 @@ import { noAwaitStart, awaitStart, pushForm } from "./util";
 
 console.log("Content script loaded");
 
-let timer: NodeJS.Timeout
+const clearLocalStorage = () => {
+    chrome.storage.local.clear(() => {
+        console.log('Local storage cleared');
+    });
+}
+
+// 在页面加载时清除本地存储数据
+window.addEventListener('load', clearLocalStorage);
+
+let timer: NodeJS.Timeout | undefined
 
 chrome.runtime.onMessage.addListener(async (message) => {
     if (message.action === 'submit') {
@@ -15,7 +24,18 @@ chrome.runtime.onMessage.addListener(async (message) => {
 
         const { type, list, timeStr } = values
         if (type === 1) {
-            timer = noAwaitStart(timeStr);
+            timer = noAwaitStart(timeStr, () => {
+                setLocal('loading', JSON.stringify(false))
+                setLocal('timer', JSON.stringify(undefined))
+                chrome.runtime.sendMessage({
+                    message: JSON.stringify({
+                        action: 'loading',
+                        data: false
+                    })
+                }, (response) => {
+                    console.log('Response from background script:', response);
+                });
+            });
         }
         if (type === 2) {
             timer = awaitStart(() => {
@@ -43,6 +63,17 @@ chrome.runtime.onMessage.addListener(async (message) => {
                         );
                     }
                 });
+            }, () => {
+                setLocal('loading', JSON.stringify(false))
+                setLocal('timer', JSON.stringify(undefined))
+                chrome.runtime.sendMessage({
+                    message: JSON.stringify({
+                        action: 'loading',
+                        data: false
+                    })
+                }, (response) => {
+                    console.log('Response from background script:', response);
+                });
             });
         }
         console.log(timer);
@@ -53,6 +84,7 @@ chrome.runtime.onMessage.addListener(async (message) => {
     if (message.action === 'stop') {
         const currentTimer = await getLocal('timer') as NodeJS.Timeout
         clearInterval(currentTimer)
-        await setLocal('timer', JSON.stringify({}))
+        timer = undefined
+        await setLocal('timer', JSON.stringify(undefined))
     }
 });
