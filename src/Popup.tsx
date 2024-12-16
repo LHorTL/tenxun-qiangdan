@@ -2,7 +2,6 @@ import "./App.css";
 import { Button, ConfigProvider, Form, Radio, TimePicker } from "antd";
 import zh_CN from "antd/locale/zh_CN";
 import Item from "./item";
-import { awaitStart, noAwaitStart, pushForm } from "./util";
 
 function Popup() {
     const [form] = Form.useForm();

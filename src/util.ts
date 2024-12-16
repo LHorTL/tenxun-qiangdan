@@ -1,4 +1,3 @@
-
 function setNativeValue(element: Element, value: any) {
     const valueSetter = (Object as any).getOwnPropertyDescriptor(element, 'value').set;
     const prototype = Object.getPrototypeOf(element);
@@ -90,6 +89,7 @@ const awaitSubmit = (fn: () => void) => {
             clearInterval(timer)
         }
     })
+    return timer
 }
 
 const modalSubmit = () => {
@@ -100,6 +100,7 @@ const modalSubmit = () => {
             modalDom.click()
         }
     })
+    return timer
 }
 
 const watchDateFn = (time: string, fn: () => void) => {
@@ -111,21 +112,20 @@ const watchDateFn = (time: string, fn: () => void) => {
             clearInterval(timer)
         }
     }, 0)
+    return timer
 }
 
 
 const start = () => {
-    modalSubmit()
+    return modalSubmit()
 }
-
 
 const noAwaitStart = (time: string) => {
     submit()
-    watchDateFn(time, start)
+    return watchDateFn(time, start)
 }
-
 const awaitStart = (fn: () => void) => {
-    awaitSubmit(fn);
+    return awaitSubmit(fn);
 }
 
 
