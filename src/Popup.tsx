@@ -45,19 +45,10 @@ function Popup() {
     const initForm = async () => {
         const data = (await getLocal("form")) as any;
         log("init", data);
-        log({
-            ...data,
-            ...(data.time
-                ? {
-                      time: dayjs(data.time, "HH:mm:ss"),
-                  }
-                : {}),
-        });
-
         if (data) {
             form.setFieldsValue({
                 ...data,
-                ...(data.time
+                ...(data?.time
                     ? {
                           time: dayjs(data.time, "HH:mm:ss"),
                       }
@@ -78,7 +69,7 @@ function Popup() {
         log("change", values);
         setLocal("form", {
             ...values,
-            ...(values.time
+            ...(values?.time
                 ? {
                       time: dayjs(values.time).format("HH:mm:ss"),
                   }
