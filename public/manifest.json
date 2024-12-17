@@ -11,6 +11,9 @@
             "128": "icon128.png"
         }
     },
+    "content_security_policy": {
+        "extension_pages": "default-src 'self'; script-src 'self';" 
+    },
     "background": {},
     "permissions": [
         "activeTab",
