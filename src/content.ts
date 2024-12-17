@@ -1,6 +1,22 @@
 /// <reference types="chrome" />
 
-import { setLocal, getLocal } from "./chrome-util";
+
+const setLocal = async (key: string, value: string) => {
+    return await chrome.storage.local.set({ [key]: value })
+}
+
+const getLocal = async (key: string) => {
+    return new Promise((res) => {
+        chrome.storage.local.get(key, data => {
+            res(data[key])
+        })
+    })
+}
+
+const removeLocal = async (key: string) => {
+    return await chrome.storage.local.remove(key)
+}
+
 import { noAwaitStart, awaitStart, pushForm } from "./util";
 
 console.log("Content script loaded");
@@ -25,15 +41,10 @@ chrome.runtime.onMessage.addListener(async (message) => {
         const { type, list, timeStr } = values
         if (type === 1) {
             timer = noAwaitStart(timeStr, () => {
-                setLocal('loading', JSON.stringify(false))
-                setLocal('timer', JSON.stringify(undefined))
+                removeLocal('timer')
                 chrome.runtime.sendMessage({
-                    message: JSON.stringify({
-                        action: 'loading',
-                        data: false
-                    })
-                }, (response) => {
-                    console.log('Response from background script:', response);
+                    action: 'loading',
+                    data: false
                 });
             });
         }
@@ -64,27 +75,27 @@ chrome.runtime.onMessage.addListener(async (message) => {
                     }
                 });
             }, () => {
-                setLocal('loading', JSON.stringify(false))
-                setLocal('timer', JSON.stringify(undefined))
+                removeLocal('timer')
                 chrome.runtime.sendMessage({
-                    message: JSON.stringify({
-                        action: 'loading',
-                        data: false
-                    })
-                }, (response) => {
-                    console.log('Response from background script:', response);
+                    action: 'loading',
+                    data: false
                 });
             });
         }
-        console.log(timer);
-
         await setLocal('timer', JSON.stringify(timer))
+
     }
 
     if (message.action === 'stop') {
         const currentTimer = await getLocal('timer') as NodeJS.Timeout
         clearInterval(currentTimer)
         timer = undefined
-        await setLocal('timer', JSON.stringify(undefined))
+        console.log('stop')
+        removeLocal('timer')
+    }
+
+    if (message.action === 'log') {
+        console.log(...message.data);
+
     }
 });

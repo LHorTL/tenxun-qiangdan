@@ -3,7 +3,23 @@ import { Button, ConfigProvider, Form, Radio, TimePicker } from "antd";
 import zh_CN from "antd/locale/zh_CN";
 import Item from "./item";
 import { useEffect, useState } from "react";
-import { getLocal, setLocal } from "./chrome-util";
+import { getLocal, setLocal } from "./chrome-pulgin";
+import dayjs from "dayjs";
+
+const sendMessage = (action, data?: any) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.id) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+                action: action,
+                data: data,
+            });
+        }
+    });
+};
+
+const log = async (...data: any) => {
+    sendMessage("log", data);
+};
 
 function Popup() {
     const [form] = Form.useForm();
@@ -12,70 +28,79 @@ function Popup() {
 
     const submit = () => {
         const values = form.getFieldsValue();
-        console.log(values);
         const { list = [], time } = values;
         const timeStr = time?.format?.("HH:mm:ss") || "";
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            if (tabs[0]?.id) {
-                chrome.tabs.sendMessage(tabs[0].id, {
-                    action: "submit",
-                    data: JSON.stringify({
-                        type,
-                        timeStr,
-                        list,
-                    }),
-                });
-            }
-        });
-
+        sendMessage(
+            "submit",
+            JSON.stringify({
+                type,
+                timeStr,
+                list,
+            })
+        );
         setLoading(true);
         setLocal("loading", JSON.stringify(true));
     };
 
     const initForm = async () => {
-        const data = await getLocal("form");
+        const data = (await getLocal("form")) as any;
+        log("init", data);
+        log({
+            ...data,
+            ...(data.time
+                ? {
+                      time: dayjs(data.time, "HH:mm:ss"),
+                  }
+                : {}),
+        });
+
         if (data) {
-            form.setFieldsValue(data);
+            form.setFieldsValue({
+                ...data,
+                ...(data.time
+                    ? {
+                          time: dayjs(data.time, "HH:mm:ss"),
+                      }
+                    : {}),
+            });
         }
     };
+
     const initLoading = async () => {
         const data = await getLocal("timer");
+        log("local-timer", data);
+
         if (data) {
             setLoading(true);
         }
     };
     const handleValueChange = (_: any, values: any) => {
-        setLocal("form", JSON.stringify(values));
+        log("change", values);
+        setLocal("form", {
+            ...values,
+            ...(values.time
+                ? {
+                      time: dayjs(values.time).format("HH:mm:ss"),
+                  }
+                : {}),
+        });
     };
 
     const stop = () => {
         setLoading(false);
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            if (tabs[0]?.id) {
-                chrome.tabs.sendMessage(tabs[0].id, {
-                    action: "stop",
-                });
-            }
-        });
+        sendMessage("stop");
     };
 
     useEffect(() => {
         initForm();
         initLoading();
-        chrome.runtime.onMessage.addListener(
-            (message, _, sendResponse) => {
-                console.log("Message received in background script:", message);
-                const item = JSON.parse(message);
-                const { action, data } = item;
-                if (action === "loading") {
-                    setLoading(data);
-                }
-                // 发送响应消息给内容脚本
-                sendResponse({
-                    response: "Message received in background script!",
-                });
+        chrome.runtime.onMessage.addListener((message) => {
+            const { action, data } = message;
+            if (action === "loading") {
+                log("action-loading", data);
+                setLoading(data);
             }
-        );
+        });
     }, []);
 
     return (
@@ -128,9 +153,14 @@ function Popup() {
                 )}
             </Form>
             {loading ? (
-                <Button onClick={stop}>运行中</Button>
+                <Button onClick={stop}>
+                    运行中，点击停止（卡状态了直接刷新页面）
+                </Button>
             ) : (
-                <Button style={{ marginTop: 24 }} onClick={() => form.submit()}>
+                <Button
+                    style={{ marginTop: type === 1 ? 0 : 24 }}
+                    onClick={() => form.submit()}
+                >
                     启动
                 </Button>
             )}

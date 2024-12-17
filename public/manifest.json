@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "My First Extension",
+    "name": "腾讯表格自动抢单",
     "version": "1.0",
-    "description": "This is my first Chrome extension!",
+    "description": "腾讯表格自动抢单",
     "action": {
         "default_popup": "index.html",
         "default_icon": {
@@ -13,7 +13,8 @@
     },
     "background": {},
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "storage"
     ],
     "content_scripts": [
         {

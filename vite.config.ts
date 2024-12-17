@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 
-// https://vite.dev/config/
 export default defineConfig({
   base: './',
   plugins: [react()],
@@ -13,14 +12,15 @@ export default defineConfig({
         content: resolve(__dirname, 'src/content.ts'),
       },
       output: {
-        format: 'esm',
+        format: 'esm', // 使用 esm 格式，支持代码拆分
         entryFileNames: '[name].js',
-        chunkFileNames: '[name].js',
-        assetFileNames: 'assets/[name].[ext]',
-        inlineDynamicImports: false, // 禁用 inlineDynamicImports
+        chunkFileNames: '[name].js', //添加chunk文件名配置，更好区分chunk
+        assetFileNames: 'assets/[name]-[hash].[ext]', //添加hash，更好使用缓存
+        inlineDynamicImports: false, // 保持 false，允许代码拆分
       },
     },
     outDir: 'dist',
     target: 'esnext',
+    minify: true, //生产环境开启代码压缩
   },
-})
+});
