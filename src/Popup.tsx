@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getLocal, setLocal } from "./chrome-pulgin";
 import dayjs from "dayjs";
 
+const timerKey = ["normalDateTimer", "modalSubmitTimer", "awaitStartTextTimer"];
 const sendMessage = (action, data?: any) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]?.id) {
@@ -58,12 +59,14 @@ function Popup() {
     };
 
     const initLoading = async () => {
-        const data = await getLocal("timer");
-        log("local-timer", data);
-
-        if (data) {
-            setLoading(true);
-        }
+        timerKey.forEach((key) => {
+            getLocal(key).then((data) => {
+                log(key, data);
+                if (data) {
+                    setLoading(true);
+                }
+            });
+        });
     };
     const handleValueChange = (_: any, values: any) => {
         log("change", values);

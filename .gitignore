@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+Tencent-form-Assistant
 dist-ssr
 *.local
 

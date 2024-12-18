@@ -15,11 +15,11 @@ export default defineConfig({
         format: 'esm', // 使用 esm 格式，支持代码拆分
         entryFileNames: '[name].js',
         chunkFileNames: '[name].js', //添加chunk文件名配置，更好区分chunk
-        assetFileNames: 'assets/[name]-[hash].[ext]', //添加hash，更好使用缓存
+        assetFileNames: '[name].[ext]', //添加hash，更好使用缓存
         inlineDynamicImports: false, // 保持 false，允许代码拆分
       },
     },
-    outDir: 'dist',
+    outDir: 'Tencent-form-Assistant',
     target: 'esnext',
     minify: true, //生产环境开启代码压缩
   },

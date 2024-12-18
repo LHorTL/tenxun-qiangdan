@@ -1,23 +1,8 @@
 /// <reference types="chrome" />
-import { noAwaitStart, awaitStart, pushForm } from "./util";
 
+import { awaitStart, getLocal, normalStart, pushForm, removeLocal } from "./help"
 
-const setLocal = async (key: string, value: string) => {
-    return await chrome.storage.local.set({ [key]: value })
-}
-
-const getLocal = async (key: string) => {
-    return new Promise((res) => {
-        chrome.storage.local.get(key, data => {
-            res(data[key])
-        })
-    })
-}
-
-const removeLocal = async (key: string) => {
-    return await chrome.storage.local.remove(key)
-}
-
+const timerKey = ['normalDateTimer', 'modalSubmitTimer', 'awaitStartTextTimer']
 
 console.log("Content script loaded");
 
@@ -30,7 +15,6 @@ const clearLocalStorage = () => {
 // 在页面加载时清除本地存储数据
 window.addEventListener('load', clearLocalStorage);
 
-let timer: NodeJS.Timeout | undefined
 
 chrome.runtime.onMessage.addListener(async (message) => {
     if (message.action === 'submit') {
@@ -40,16 +24,15 @@ chrome.runtime.onMessage.addListener(async (message) => {
 
         const { type, list, timeStr } = values
         if (type === 1) {
-            timer = noAwaitStart(timeStr, () => {
-                removeLocal('timer')
-                chrome.runtime.sendMessage({
-                    action: 'loading',
-                    data: false
-                });
+            await normalStart(timeStr);
+            removeLocal('timer')
+            chrome.runtime.sendMessage({
+                action: 'loading',
+                data: false
             });
         }
         if (type === 2) {
-            timer = awaitStart(() => {
+            await awaitStart(() => {
                 list?.map((item: any) => {
                     if (item?.type === "textArea") {
                         pushForm(
@@ -70,29 +53,32 @@ chrome.runtime.onMessage.addListener(async (message) => {
                         pushForm(
                             "checkBox",
                             item?.indexValue - 1,
-                            item?.checkBoxValue
+                            (item?.checkBoxValue || []).map((t: number) => t - 1)
                         );
                     }
 
                 });
-            }, () => {
-                removeLocal('timer')
-                chrome.runtime.sendMessage({
-                    action: 'loading',
-                    data: false
-                });
+            });
+            removeLocal('timer')
+            chrome.runtime.sendMessage({
+                action: 'loading',
+                data: false
             });
         }
-        await setLocal('timer', JSON.stringify(timer))
+        // await setLocal('timer', JSON.stringify(timer))
 
     }
 
     if (message.action === 'stop') {
-        const currentTimer = await getLocal('timer') as NodeJS.Timeout
-        clearInterval(currentTimer)
-        timer = undefined
-        console.log('stop')
-        removeLocal('timer')
+        timerKey.map(key => {
+            console.log(key);
+            getLocal(key).then(timer => {
+                if (timer) {
+                    clearInterval(Number(timer) as number)
+                }
+                removeLocal(key as string)
+            })
+        })
     }
 
     if (message.action === 'log') {
