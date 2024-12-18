@@ -1,4 +1,5 @@
 /// <reference types="chrome" />
+import { noAwaitStart, awaitStart, pushForm } from "./util";
 
 
 const setLocal = async (key: string, value: string) => {
@@ -17,14 +18,13 @@ const removeLocal = async (key: string) => {
     return await chrome.storage.local.remove(key)
 }
 
-import { noAwaitStart, awaitStart, pushForm } from "./util";
 
 console.log("Content script loaded");
 
 const clearLocalStorage = () => {
-    chrome.storage.local.clear(() => {
-        console.log('Local storage cleared');
-    });
+    // chrome.storage.local.clear(() => {
+    //     console.log('Local storage cleared');
+    // });
 }
 
 // 在页面加载时清除本地存储数据
@@ -73,6 +73,7 @@ chrome.runtime.onMessage.addListener(async (message) => {
                             item?.checkBoxValue
                         );
                     }
+
                 });
             }, () => {
                 removeLocal('timer')
