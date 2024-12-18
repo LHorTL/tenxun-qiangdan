@@ -162,7 +162,7 @@ function Popup() {
                 )}
             </Form>
             {loading ? (
-                <Button onClick={stop}>
+                <Button onClick={stop} style={{ marginTop: type === 1 ? 0 : 24 }}>
                     运行中，点击停止（卡状态了直接刷新页面）
                 </Button>
             ) : (
