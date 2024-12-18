@@ -23,12 +23,8 @@ const options = [
 
 const Item: FC<Props> = ({ value, onChange, remove }) => {
     const [type, setType] = useState(value?.type || "textArea");
-    // const [textValue, setTextValue] = useState(value?.textValue || "");
-    // const [radioValue, setRadioValue] = useState(value?.radioValue);
-    // const [checkBoxValue, setCheckBoxValue] = useState(
-    //     value?.checkBoxValue || []
-    // );
-    // const [indexValue, setIndexValue] = useState(value?.indexValue);
+
+    const [indexValue, setIndexValue] = useState(value?.indexValue);
     const radioOption = new Array(20)
         .fill(1)
         .map((_, i) => ({ value: i + 1, label: i + 1 }));
@@ -74,10 +70,12 @@ const Item: FC<Props> = ({ value, onChange, remove }) => {
                 onChange={selectChange}
                 style={{ width: 200 }}
                 options={options}
+                value={value?.type}
                 placeholder="选择填写的类型"
             ></Select>
             {type === "textArea" && (
                 <Input
+                    value={value?.textValue}
                     style={{ width: 180 }}
                     placeholder="输入内容"
                     onChange={textChange}
@@ -85,6 +83,7 @@ const Item: FC<Props> = ({ value, onChange, remove }) => {
             )}
             {type === "radio" && (
                 <Select
+                    value={value?.radioValue}
                     onChange={radioChange}
                     options={radioOption}
                     style={{ width: 180 }}
@@ -94,6 +93,7 @@ const Item: FC<Props> = ({ value, onChange, remove }) => {
             {type === "checkBox" && (
                 <Select
                     mode="multiple"
+                    value={value?.checkBoxValue}
                     onChange={checkBoxChange}
                     options={radioOption}
                     style={{ width: 180 }}
@@ -101,6 +101,7 @@ const Item: FC<Props> = ({ value, onChange, remove }) => {
                 ></Select>
             )}
             <Select
+                value={value?.indexValue}
                 onChange={indexChange}
                 options={radioOption}
                 style={{ width: 200 }}
