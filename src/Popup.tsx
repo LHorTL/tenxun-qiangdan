@@ -108,7 +108,17 @@ function Popup() {
                     list: [],
                 }}
             >
-                <Form.Item label="选择模式" name="type">
+                <Form.Item
+                    label="选择模式"
+                    name="type"
+                    help={
+                        type === 1 ? (
+                            <div>
+                                使用定时提交模式，请先在系统里面同步一次时间然后重启浏览器，避免时间差异导致提交过早或者过晚
+                            </div>
+                        ) : undefined
+                    }
+                >
                     <Radio.Group>
                         <Radio.Button value={1}>定时提交的表格</Radio.Button>
                         <Radio.Button value={2}>定时开启的表格</Radio.Button>
@@ -135,7 +145,12 @@ function Popup() {
                                     ))}
                                     <Button
                                         type="dashed"
-                                        onClick={() => add()}
+                                        onClick={() =>
+                                            add({
+                                                type: "textArea",
+                                                indexValue: fields.length + 1,
+                                            })
+                                        }
                                         style={{ width: "60%" }}
                                     >
                                         增加
